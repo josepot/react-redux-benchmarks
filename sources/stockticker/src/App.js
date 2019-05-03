@@ -1,5 +1,5 @@
-import React from "react";
-import { connect } from "react-redux";
+import React, { useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import Slice from "./Slice";
 import { updateRandomPairInSlice } from "./pairActions";
@@ -11,34 +11,26 @@ const mapState = state => {
     slices = Array(Object.keys(state).length).fill(0);
   }
 
-  return { slices };
+  return slices;
 };
 
-const mapDispatch = { updateRandomPairInSlice };
+export default function App() {
+  const dispatch = useDispatch();
+  const onButtonClick = useCallback(() => dispatch(updateRandomPairInSlice()), [dispatch]);
+  const slices = useSelector(mapState);
 
-class App extends React.Component {
-  render() {
-    return (
-      <div>
-        <button onClick={this.props.updateRandomPairInSlice}>
-          Update Random Pair
-        </button>
-        <div className="row">
-          {this.props.slices.map((slice, idx) => {
-            return (
-              <div className="col-lg-4" key={idx}>
-                <Slice idx={idx} />
-              </div>
-            );
-          })}
-        </div>
+  return (
+    <div>
+      <button onClick={onButtonClick}>
+        Update Random Pair
+      </button>
+      <div className="row">
+        {slices.map((slice, idx) => (
+          <div className="col-lg-4" key={idx}>
+            <Slice idx={idx} />
+          </div>
+        ))}
       </div>
-    );
-  }
+    </div>
+  );
 }
-App.displayName = "App";
-
-export default connect(
-  mapState,
-  mapDispatch
-)(App);

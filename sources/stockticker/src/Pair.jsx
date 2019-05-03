@@ -1,35 +1,26 @@
-import React from "react";
-import { connect } from "react-redux";
+import React, { useCallback, useRef, useEffect, useMemo } from "react";
+import { useSelector } from "react-redux";
 
-const mapState = (state, props) => state[props.sliceId][props.pairId];
+export default function Pair({ sliceId, pairId }) {
+  const selector = useCallback(state => state[sliceId][pairId], [sliceId, pairId]); 
+  const { value, name } = useSelector(selector);
 
-class Pair extends React.Component {
-  state = {
-    direction: "up",
-    value: this.props.value
-  };
+  const latestValue = useRef(value);
+  const latestDirection = useRef('up');
 
-  static getDerivedStateFromProps(props, state) {
-    if (props.value === state.value) return null;
+  let direction = value === latestValue.current
+    ? latestDirection.current
+    : value > latestValue.current ? 'up' : 'down';
 
-    const direction = props.value > state.value ? "up" : "down";
+  useEffect(() => {
+    latestDirection.current = direction;
+    latestValue.current = value;
+  })
 
-    return {
-      value: props.value,
-      direction
-    };
-  }
-
-  shouldComponentUpdate(nextProps) {
-    return this.props.value !== nextProps.value;
-  }
-
-  render() {
-    const { direction } = this.state;
-
-    return (
+  return useMemo(
+    () => (
       <li className="list-group-item">
-        <span>{this.props.name}</span>
+        <span>{name}</span>
         <span
           className={
             "pull-right " +
@@ -44,12 +35,10 @@ class Pair extends React.Component {
                 : "glyphicon-arrow-down")
             }
           />
-          <span>{this.props.value}</span>
+          <span>{value}</span>
         </span>
       </li>
-    );
-  }
+    ),
+    [value]
+  )
 }
-Pair.displayName = "Pair";
-
-export default connect(mapState)(Pair);

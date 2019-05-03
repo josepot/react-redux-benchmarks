@@ -1,43 +1,23 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useCallback } from "react";
+import { useSelector } from "react-redux";
 
-const mapStateToProps = (state, props) => {
-  return {
-    value: state[props.idx]
-  };
-};
-
-const Counter = ({ value }) => {
+const Counter = ({ idx }) => {
+  const selector = useCallback(state => state[idx], [idx]);
+  const value = useSelector(selector);
   return <div>Value: {value}</div>;
 };
 
-const ConnectedCounter = connect(mapStateToProps)(Counter);
-
-class Slice extends Component {
-  state = {};
-
-  componentDidMount = () => {
-    //this.props.fillPairs(this.props.idx);
-  };
-
-  render() {
-    const { remainingDepth, idx } = this.props;
-
-    if (remainingDepth > 0) {
-      return (
+export default function Slice({remainingDepth, idx}) {
+  if (remainingDepth > 0) {
+    return (
+      <div>
+        {idx}.{remainingDepth}
         <div>
-          {idx}.{remainingDepth}
-          <div>
-            <Slice idx={idx} remainingDepth={remainingDepth - 1} />
-          </div>
+          <Slice idx={idx} remainingDepth={remainingDepth - 1} />
         </div>
-      );
-    }
-
-    return <ConnectedCounter idx={idx} />;
+      </div>
+    );
   }
-}
-Slice.displayName = "Slice";
 
-export default Slice;
-//export default connect(mapStateToProps, actions)(Slice);
+  return <Counter idx={idx} />;
+}

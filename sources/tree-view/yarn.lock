@@ -3912,7 +3912,7 @@ forwarded@~0.1.2:
   integrity sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=
 
 "fps-emit@file:../../fps-emit":
-  version "1.0.0"
+  version "1.0.1"
   dependencies:
     fps-emitter "^1.0.0"
     performance-mark-metadata "^1.0.3"

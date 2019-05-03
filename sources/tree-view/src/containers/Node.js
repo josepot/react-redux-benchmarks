@@ -1,73 +1,69 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Component } from 'react'
-import { connect } from 'react-redux'
-import * as actions from '../actions'
+import { useSelector, useDispatch } from 'react-redux'
+import {increment, createNode, addChild, removeChild, deleteNode} from '../actions'
 
-export class Node extends Component {
-  handleIncrementClick = () => {
-    const { increment, id } = this.props
-    increment(id)
-  }
+export default function Node ({id, parentId}) {
+  const nodeSelector = useCallback(state => {
+    // const getSubtreeIds = rootId => [rootId, ...state[rootId].childIds.map(getSubtreeIds)];
+    // return { ...state[id], subtreeIds: getSubtreeIds(id) };
+    return state[id];
+  }, [id]);
+  const {counter, childIds} = useSelector(nodeSelector);
 
-  handleAddChildClick = e => {
-    e.preventDefault()
+  const dispatch = useDispatch();
+  const {
+    handleIncrementClick,
+    handleAddChildClick,
+    handleRemoveClick,
+  } =  useMemo(() => ({
+    handleIncrementClick: () => {
+      dispatch(increment(id));
+    },
+    handleAddChildClick: e => {
+      e.preventDefault()
+      const childId = dispatch(createNode()).nodeId
+      dispatch(addChild(id, childId))
+    },
+    handleRemoveClick: e => {
+      e.preventDefault()
 
-    const { addChild, createNode, id } = this.props
-    const childId = createNode().nodeId
-    addChild(id, childId)
-  }
+      dispatch(removeChild(parentId, id))
+      dispatch(deleteNode(id))
+    }
+  }), [dispatch, id, parentId])
 
-  handleRemoveClick = e => {
-    e.preventDefault()
+  const renderChild = useCallback(childId => (
+    <li key={childId}>
+      <Node id={childId} parentId={id} />
+    </li>
+  ), [id])
 
-    const { removeChild, deleteNode, parentId, id } = this.props
-    removeChild(parentId, id)
-    deleteNode(id)
-  }
 
-  renderChild = childId => {
-    const { id } = this.props
-    return (
-      <li key={childId}>
-        <ConnectedNode id={childId} parentId={id} />
-      </li>
-    )
-  }
-
-  render() {
-    const { counter, parentId, childIds, id } = this.props
-    return (
-      <div>
+  return (
+    <div>
         Counter #{id}: {counter}
-        {' '}
-        <button className="increment" onClick={this.handleIncrementClick}>
-          +
-        </button>
-        {' '}
-        {typeof parentId !== 'undefined' &&
-          <a href="#" className="deleteNode" onClick={this.handleRemoveClick} // eslint-disable-line jsx-a11y/href-no-hash
-             style={{ color: 'lightgray', textDecoration: 'none' }}>
+      {' '}
+      <button className="increment" onClick={handleIncrementClick}>
+        +
+      </button>
+      {' '}
+      {typeof parentId !== 'undefined' &&
+          <a href="#" className="deleteNode" onClick={handleRemoveClick} // eslint-disable-line jsx-a11y/href-no-hash
+        style={{ color: 'lightgray', textDecoration: 'none' }}>
             Delete
           </a>
-        }
-        <ul>
-          {childIds.map(this.renderChild)}
-          <li key="add">
-            <a href="#" className="addChild" // eslint-disable-line jsx-a11y/href-no-hash
-              onClick={this.handleAddChildClick}
-            >
-              Add child
-            </a>
-          </li>
-        </ul>
-      </div>
-    )
-  }
+      }
+          <ul>
+            {childIds.map(renderChild)}
+            <li key="add">
+              <a href="#" className="addChild" // eslint-disable-line jsx-a11y/href-no-hash
+    onClick={handleAddChildClick}
+              >
+                  Add child
+              </a>
+            </li>
+          </ul>
+        </div>
+  )
 }
-
-function mapStateToProps(state, ownProps) {
-  return state[ownProps.id]
-}
-
-const ConnectedNode = connect(mapStateToProps, actions)(Node)
-export default ConnectedNode

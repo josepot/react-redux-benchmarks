@@ -1,5 +1,6 @@
-import React from "react";
-import { connect } from "react-redux";
+import React, { useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { bindActionCreators } from "redux";
 
 import Slice from "./Slice";
 import * as c from "./constants";
@@ -16,7 +17,7 @@ const mapState = state => {
     //slices.sort();
   }
 
-  return { slices };
+  return slices;
 };
 
 function doUpdateMany(mod) {
@@ -31,49 +32,45 @@ const mapDispatch = {
   appendMany: () => appendRandomCharToMany(4)
 };
 
-class App extends React.Component {
-  render() {
-    return (
-      <div>
-        <div>
-          <button
-            id="incrementRandom"
-            onClick={this.props.incrementRandomCounter}
-          >
-            Update Random Counter
-          </button>
-          <button id="incrementFifth" onClick={this.props.incrementFifth}>
-            Update 1/5 Counters
-          </button>
-          <button id="incrementThird" onClick={this.props.incrementThird}>
-            Update 1/3 Counters
-          </button>
-          <button
-            id="appendRandomCharacter"
-            onClick={this.props.appendRandomCharacter}
-          >
-            Append Random Char
-          </button>
-          <button id="appendMany" onClick={this.props.appendMany}>
-            Append Char to Many
-          </button>
-        </div>
-        <div className="row">
-          {this.props.slices.map((slice, idx) => {
-            return (
-              <div style={{ display: "inline-block", minWidth: 70 }} key={idx}>
-                <Slice idx={slice} remainingDepth={c.TREE_DEPTH} />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-}
-App.displayName = "App";
+export default function App() {
+  const dispatch = useDispatch();
+  const slices = useSelector(mapState);
+  const actions = useMemo(() => bindActionCreators(mapDispatch, dispatch), [dispatch]);
 
-export default connect(
-  mapState,
-  mapDispatch
-)(App);
+  return (
+    <div>
+      <div>
+        <button
+          id="incrementRandom"
+          onClick={actions.incrementRandomCounter}
+        >
+          Update Random Counter
+        </button>
+        <button id="incrementFifth" onClick={actions.incrementFifth}>
+          Update 1/5 Counters
+        </button>
+        <button id="incrementThird" onClick={actions.incrementThird}>
+          Update 1/3 Counters
+        </button>
+        <button
+          id="appendRandomCharacter"
+          onClick={actions.appendRandomCharacter}
+        >
+          Append Random Char
+        </button>
+        <button id="appendMany" onClick={actions.appendMany}>
+          Append Char to Many
+        </button>
+      </div>
+      <div className="row">
+        {slices.map((slice, idx) => {
+          return (
+            <div style={{ display: "inline-block", minWidth: 70 }} key={idx}>
+              <Slice idx={slice} remainingDepth={c.TREE_DEPTH} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
